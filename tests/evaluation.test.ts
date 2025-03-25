@@ -1,5 +1,5 @@
 import path from 'path';
-import { writeTranscriptToCSV, getAsString, exampleCompare } from '@/lib/evaluation';
+import { writeTranscriptToCSV, getAsString, exampleCompare } from '@/lib/evaluation/index';
 import fs from 'fs';
 import { Transcript } from 'assemblyai';
 
