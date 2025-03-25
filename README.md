@@ -15,3 +15,7 @@ To run this:
    ```
 
 Note: Never commit your actual `.env` file to git - it's already in `.gitignore` to prevent this.
+
+
+
+Run tests with `npx tsx [testFile]`
