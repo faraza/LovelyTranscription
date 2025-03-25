@@ -2,7 +2,7 @@ To run this:
 
 1. Set up your environment variables:
    ```bash
-   cp .env.example .env
+   cp example.env .env
    ```
    Then edit `.env` and replace the dummy API keys with your actual keys from:
    - OpenAI: https://platform.openai.com/api-keys
