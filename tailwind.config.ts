@@ -7,9 +7,18 @@ const config: Config = {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
       },
+      keyframes: {
+        progress: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        progress: 'progress 2s ease-in-out infinite',
+      },
     },
   },
-  // Optional: Add custom fonts too
-  // plugins: [],
+  plugins: [require("tailwindcss-animate")],
 }
+
 export default config;
