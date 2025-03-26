@@ -1,103 +1,128 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useMemo, useRef } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
+const rawTranscript = `
+[0.16 - 0.62],A,What Daddy says.
+[0.64 - 4.10],B,Okay let's. I'm going to fan them out so we can see them all.
+[6.72 - 7.99],A,So I get to go first.
+[8.10 - 9.27],C,I made it taller.
+[9.42 - 10.12],A,Whoa.
+[10.28 - 28.03],B,So we want to find ones. Numbers that are the same or numbers that go in a. In order in a sequence that are insane. Good. Good thoughts. No not yet. You have to have three or more.
+[29.85 - 31.67],A,So it's not quite like your finish.
+[31.70 - 36.03],B,So it's a start. I mean you did great. You noticed it so that was great.
+[36.12 - 37.71],A,Your turn Eliza. Oh okay.
+[37.84 - 39.20],C,Pick a card and discard.
+[39.35 - 42.87],A,You always got to pick. You always got a discard. Don't let me see your cards.
+[43.37 - 45.19],C,And I got to grab.
+[48.41 - 54.00],A,I think all the glitter came out of her hair when I brushed it. It looks pretty good. Yeah sorry about that.
+[54.07 - 58.73],B,Oh no like I wasn't worried it. Once the glue was gone I was like oh just brush out.
+[58.76 - 59.96],A,Did the glue wash out okay?
+`;
+
+interface Segment {
+  start: number;
+  end: number;
+  speaker: string;
+  text: string;
+}
+
+function parseTranscript(raw: string): Segment[] {
+  return raw
+    .trim()
+    .split('\n')
+    .map((line) => {
+      const match = line.match(/\[(.*?) - (.*?)\],(.*?),(.*)/);
+      if (!match) return null;
+      return {
+        start: parseFloat(match[1]),
+        end: parseFloat(match[2]),
+        speaker: match[3],
+        text: match[4].trim(),
+      };
+    })
+    .filter((seg): seg is Segment => seg !== null);
+}
+
+export default function TranscriptPage() {
+  const segments = useMemo(() => parseTranscript(rawTranscript), []);
+  const uniqueSpeakers = Array.from(new Set(segments.map((s) => s.speaker)));
+  const [speakerNames, setSpeakerNames] = useState(
+    Object.fromEntries(uniqueSpeakers.map((s) => [s, `Speaker ${s}`]))
+  );
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const handleNameChange = (id: string, name: string) => {
+    setSpeakerNames((prev) => ({ ...prev, [id]: name }));
+  };
+
+  const playSegment = (start: number, end: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.currentTime = start;
+    audio.play();
+
+    const stopAt = () => {
+      if (audio.currentTime >= end) {
+        audio.pause();
+        audio.removeEventListener('timeupdate', stopAt);
+      }
+    };
+
+    audio.addEventListener('timeupdate', stopAt);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="mx-auto max-w-3xl p-6 space-y-10">
+      {/* Audio Section */}
+      <section>
+        <h1 className="text-2xl font-bold mb-4">Transcript Demo</h1>
+        <audio ref={audioRef} controls src="/your-audio-file.mp3" className="w-full" />
+      </section>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Speaker Names Section */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Speakers</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {Object.entries(speakerNames).map(([id, name]) => (
+            <div key={id} className="flex items-center gap-2">
+              <label className="text-sm w-12 font-medium text-gray-700">{id}:</label>
+              <Input
+                value={name}
+                onChange={(e) => handleNameChange(id, e.target.value)}
+                className="flex-1"
+              />
+            </div>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Transcript Section */}
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Transcript</h2>
+        <ul className="space-y-4">
+          {segments.map((seg, idx) => (
+            <li key={idx} className="border p-4 rounded-lg shadow space-y-2">
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span>
+                  <span className="font-medium text-gray-700">
+                    {speakerNames[seg.speaker]}
+                  </span>{' '}
+                  ({seg.start.toFixed(2)}s - {seg.end.toFixed(2)}s)
+                </span>
+                <Button size="sm" onClick={() => playSegment(seg.start, seg.end)}>
+                  ▶ Play
+                </Button>
+              </div>
+              <p className="text-gray-800">{seg.text}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }
