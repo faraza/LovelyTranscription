@@ -124,14 +124,21 @@ export default function UploadPage() {
               Select File
             </Button>
             {file && (
-              <Button onClick={processFile} disabled={uploading}>
+              <Button 
+                onClick={processFile} 
+                disabled={uploading}
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6"
+              >
                 {uploading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processing...
                   </>
                 ) : (
-                  "Process File"
+                  <>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Analyze Audio
+                  </>
                 )}
               </Button>
             )}
