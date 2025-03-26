@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Upload, X, Music, Loader2 } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { runTranscription } from '@/lib/transcription';
 import { uploadStore } from '@/lib/uploadStore';
 

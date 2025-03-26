@@ -33,7 +33,8 @@ export async function runTranscription(file: File): Promise<Transcript> {
 }
 
 export async function saveTranscript(transcript: Transcript, filepath: string) {
-    
+    console.log(transcript);
+    console.log(filepath);
 
     // // Create directory if it doesn't exist
     // fs.mkdirSync(filepath, { recursive: true });
