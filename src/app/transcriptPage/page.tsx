@@ -3,6 +3,11 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Play, Pause, User, Clock, MessageSquare } from 'lucide-react';
+import { formatTime } from '@/lib/utils';
 import { Transcript } from 'assemblyai';
 import { uploadStore } from '@/lib/uploadStore';
 
@@ -29,19 +34,20 @@ export default function TranscriptPage() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const segments = useMemo(() => transcript ? parseTranscript(transcript) : [], [transcript]);
   const [speakerNames, setSpeakerNames] = useState<Record<string, string>>({});
-
-useEffect(() => {
-  const speakers = Array.from(new Set(segments.map((s) => s.speaker)));
-  setSpeakerNames((prev) => {
-    const updated = { ...prev };
-    for (const s of speakers) {
-      if (!updated[s]) updated[s] = `Speaker ${s}`;
-    }
-    return updated;
-  });
-}, [segments]);
-
+  const [currentSegment, setCurrentSegment] = useState<number | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const speakers = Array.from(new Set(segments.map((s) => s.speaker)));
+    setSpeakerNames((prev) => {
+      const updated = { ...prev };
+      for (const s of speakers) {
+        if (!updated[s]) updated[s] = `Speaker ${s}`;
+      }
+      return updated;
+    });
+  }, [segments]);
 
   useEffect(() => {
     const savedTranscript = localStorage.getItem('currentTranscript');
@@ -73,83 +79,215 @@ useEffect(() => {
     };
   }, []);
 
+  // Set up audio event listeners
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentSegment(null);
+    };
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
+
   const handleNameChange = (id: string, name: string) => {
     setSpeakerNames((prev) => ({ ...prev, [id]: name }));
   };
 
-  const playSegment = (start: number, end: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  const getSpeakerColor = (speakerId: string) => {
+    const colors = [
+      "bg-blue-100 text-blue-800 border-blue-200",
+      "bg-green-100 text-green-800 border-green-200",
+      "bg-purple-100 text-purple-800 border-purple-200",
+      "bg-amber-100 text-amber-800 border-amber-200",
+      "bg-rose-100 text-rose-800 border-rose-200",
+    ];
+    const charCode = speakerId.charCodeAt(0);
+    return colors[charCode % colors.length];
+  };
 
-    audio.currentTime = start;
-    audio.play();
+  const getAvatarColor = (speakerId: string) => {
+    const colors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-amber-500", "bg-rose-500"];
+    const charCode = speakerId.charCodeAt(0);
+    return colors[charCode % colors.length];
+  };
 
-    const stopAt = () => {
-      if (audio.currentTime >= end) {
-        audio.pause();
-        audio.removeEventListener('timeupdate', stopAt);
+  const playSegment = (index: number, start: number, end: number) => {
+    if (audioRef.current) {
+      // If already playing this segment, pause it
+      if (currentSegment === index && isPlaying) {
+        audioRef.current.pause();
+        setCurrentSegment(null);
+        return;
       }
-    };
 
-    audio.addEventListener('timeupdate', stopAt);
+      setCurrentSegment(index);
+      audioRef.current.currentTime = start;
+      audioRef.current.play();
+
+      // Stop playback when segment ends
+      const stopPlayback = () => {
+        if (audioRef.current && audioRef.current.currentTime >= end) {
+          audioRef.current.pause();
+          setCurrentSegment(null);
+          audioRef.current.removeEventListener('timeupdate', stopPlayback);
+        }
+      };
+
+      audioRef.current.addEventListener('timeupdate', stopPlayback);
+    }
   };
 
   if (!transcript) {
     return (
-      <div className="mx-auto max-w-3xl p-6">
-        <h1 className="text-2xl font-bold">No transcript available</h1>
-        <p className="mt-4">Please upload an audio file first.</p>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-b from-background to-muted">
+        <div className="text-center max-w-md mx-auto p-8 rounded-lg border shadow-lg bg-card">
+          <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h1 className="text-2xl font-bold mb-4">No transcript available</h1>
+          <p className="text-muted-foreground mb-6">Please upload an audio file to generate a transcript.</p>
+          <Button size="lg" className="px-8">
+            Upload Audio File
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl p-6 space-y-10">
-      {/* Audio Section */}
-      <section>
-        <h1 className="text-2xl font-bold mb-4">Transcript</h1>
-        <audio ref={audioRef} controls src={audioUrl || ''} className="w-full" />
-      </section>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-16">
+      <div className="container mx-auto py-8 px-4">
+        <header className="mb-10 text-center">
+          <h1 className="text-4xl font-bold mb-2">Transcript Review</h1>
+          <p className="text-muted-foreground">Review and edit your audio transcript</p>
+        </header>
 
-      {/* Speaker Names Section */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Speakers</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {Object.entries(speakerNames).map(([id, name]) => (
-            <div key={id} className="flex items-center gap-2">
-              <label className="text-sm w-12 font-medium text-gray-700">{id}:</label>
-              <Input
-                value={name}
-                onChange={(e) => handleNameChange(id, e.target.value)}
-                className="flex-1"
-              />
-            </div>
-          ))}
+        {/* Audio Player */}
+        <div className="mb-12 max-w-3xl mx-auto">
+          <div className="bg-card rounded-lg shadow-lg p-6 border">
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <span className="bg-primary/10 p-2 rounded-full mr-2">
+                <Play className="h-5 w-5 text-primary" />
+              </span>
+              Audio Player
+            </h2>
+            <audio ref={audioRef} controls className="w-full rounded-md" src={audioUrl || undefined}>
+              Your browser does not support the audio element.
+            </audio>
+          </div>
         </div>
-      </section>
 
-      {/* Transcript Section */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Transcript</h2>
-        <ul className="space-y-4">
-          {segments.map((seg, idx) => (
-            <li key={idx} className="border p-4 rounded-lg shadow space-y-2">
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>
-                  <span className="font-medium text-gray-700">
-                    {speakerNames[seg.speaker]}
-                  </span>{' '}
-                  ({seg.start.toFixed(2)}s - {seg.end.toFixed(2)}s)
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* Speaker Management */}
+          <div className="md:col-span-1">
+            <div className="bg-card rounded-lg shadow-lg p-6 border sticky top-4">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <span className="bg-primary/10 p-2 rounded-full mr-2">
+                  <User className="h-5 w-5 text-primary" />
                 </span>
-                <Button size="sm" onClick={() => playSegment(seg.start, seg.end)}>
-                  ▶ Play
-                </Button>
+                Speakers
+              </h2>
+              <div className="space-y-4">
+                {Object.entries(speakerNames).map(([speakerId, speakerName]) => (
+                  <div key={speakerId} className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Avatar className={`h-8 w-8 ${getAvatarColor(speakerId)}`}>
+                        <AvatarFallback>{speakerId}</AvatarFallback>
+                      </Avatar>
+                      <Badge variant="outline" className={`${getSpeakerColor(speakerId)} border`}>
+                        ID: {speakerId}
+                      </Badge>
+                    </div>
+                    <Input
+                      value={speakerName}
+                      onChange={(e) => handleNameChange(speakerId, e.target.value)}
+                      className="w-full"
+                      placeholder="Speaker name"
+                    />
+                  </div>
+                ))}
               </div>
-              <p className="text-gray-800">{seg.text}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+            </div>
+          </div>
+
+          {/* Transcript Display */}
+          <div className="md:col-span-2">
+            <div className="bg-card rounded-lg shadow-lg p-6 border mb-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center">
+                <span className="bg-primary/10 p-2 rounded-full mr-2">
+                  <MessageSquare className="h-5 w-5 text-primary" />
+                </span>
+                Transcript
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Click on any segment to play the corresponding audio. Edit speaker names in the panel to the left.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {segments.map((segment, index) => (
+                <Card
+                  key={index}
+                  className={`transition-all duration-200 hover:shadow-md ${currentSegment === index ? "ring-2 ring-primary shadow-lg" : ""}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex items-center gap-2">
+                        <Avatar className={`h-8 w-8 ${getAvatarColor(segment.speaker)}`}>
+                          <AvatarFallback>{segment.speaker}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <span className="font-medium">
+                            {speakerNames[segment.speaker] || `Speaker ${segment.speaker}`}
+                          </span>
+                          <div className="flex items-center text-xs text-muted-foreground mt-1">
+                            <Clock className="h-3 w-3 mr-1" />
+                            <span>
+                              {formatTime(segment.start)} - {formatTime(segment.end)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={currentSegment === index && isPlaying ? "default" : "outline"}
+                        onClick={() => playSegment(index, segment.start, segment.end)}
+                        className="flex items-center gap-1 h-8"
+                      >
+                        {currentSegment === index && isPlaying ? (
+                          <>
+                            <Pause className="h-3 w-3" />
+                            <span>Pause</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-3 w-3" />
+                            <span>Play</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="pl-10">
+                      <p className="text-sm leading-relaxed">{segment.text}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 
