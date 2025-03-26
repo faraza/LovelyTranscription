@@ -54,7 +54,7 @@ export async function writeTranscriptToCSV(
 /**
  * Escapes CSV-special characters like quotes, commas, or newlines.
  */
-function escapeCSV(value: string): string {
+export function escapeCSV(value: string): string {
     if (value == null) return '';
     if (/[",\r\n]/.test(value)) {
         return `"${value.replace(/"/g, '""')}"`;

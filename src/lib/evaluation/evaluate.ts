@@ -17,6 +17,7 @@ export interface ComparisonResult {
     wordsCaptured: number;
     totalGoldWords: number;
     overlapPercent: number;
+    valid: boolean;
 }
 
 /**
@@ -170,7 +171,8 @@ export async function exampleCompare(
                 matchedLine: '',
                 wordsCaptured: 0,
                 totalGoldWords: goldTokens.length,
-                overlapPercent: 0
+                overlapPercent: 0,
+                valid: false
             });
             continue;
         }
@@ -186,10 +188,6 @@ export async function exampleCompare(
             }
         }
 
-        // speakerCorrect => whether this mapped speaker matches bestMapping
-        // (We assume if bestMapping[goldSpk] == mappedSpk, that is correct.)
-        const speakerCorrect = mappedSpk.trim() !== '';
-
         // measure how many gold words appear in the best matched line
         const goldTokens = preprocess(gold.utterance);
         const bestTokens = preprocess(bestLine);
@@ -197,6 +195,10 @@ export async function exampleCompare(
         const overlapPercent = goldTokens.length
             ? Math.round((overlapCount / goldTokens.length) * 100)
             : 0;
+
+        const valid = overlapPercent >= 50;
+        // speakerCorrect => whether this mapped speaker matches bestMapping AND the line is valid
+        const speakerCorrect = mappedSpk.trim() !== '' && valid;
 
         results.push({
             goldSpeaker: goldSpk,
@@ -206,9 +208,21 @@ export async function exampleCompare(
             matchedLine: bestLine,
             wordsCaptured: overlapCount,
             totalGoldWords: goldTokens.length,
-            overlapPercent
+            overlapPercent,
+            valid
         });
     }
+
+    // Calculate final statistics
+    const totalLines = results.length;
+    const validLines = results.filter(r => r.valid).length;
+    const totalGoldWords = results.reduce((sum, r) => sum + r.totalGoldWords, 0);
+    const totalWordsCaptured = results.reduce((sum, r) => sum + (r.valid ? r.wordsCaptured : 0), 0);
+    const correctSpeakers = results.filter(r => r.speakerCorrect).length;
+    
+    const linesCapturedPercent = totalLines ? Math.round((validLines / totalLines) * 100) : 0;
+    const wordsCapturedPercent = totalGoldWords ? Math.round((totalWordsCaptured / totalGoldWords) * 100) : 0;
+    const speakersCorrectPercent = totalLines ? Math.round((correctSpeakers / totalLines) * 100) : 0;
 
     // 7) Write results to CSV
     const csvOut = stringify(results, {
@@ -222,9 +236,22 @@ export async function exampleCompare(
             { key: 'wordsCaptured', header: 'Words Captured' },
             { key: 'totalGoldWords', header: 'Total Gold Words' },
             { key: 'overlapPercent', header: 'Overlap %' },
+            { key: 'valid', header: 'Valid' }
         ]
     });
 
-    await fs.writeFile(outputPath, csvOut, 'utf-8');
+    // Add final results
+    const finalResults = [
+        '',
+        'Final Results',
+        `% captured lines: ${linesCapturedPercent}%`,
+        `% words captured: ${wordsCapturedPercent}%`,
+        `% speakers correctly identified: ${speakersCorrectPercent}%`,
+        '',
+        'Speaker Mapping:',
+        ...Object.entries(bestMapping).map(([gold, trans]) => `${gold} -> ${trans}`)
+    ].join('\n');
+
+    await fs.writeFile(outputPath, csvOut + finalResults, 'utf-8');
     console.log(`Wrote comparison CSV to ${outputPath}`);
 } 

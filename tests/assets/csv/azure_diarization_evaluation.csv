@@ -1,0 +1,81 @@
+Gold Speaker,Transcript Speaker,Speaker Correct?,Gold Line,Matched Transcript Line,Words Captured,Total Gold Words,Overlap %,Valid
+2,A,1,Lets do what Daddy says OK.,"Daddy says OK, let's.",4,6,67,1
+3,B,1,"let's get rid of, fan them out so you can see them all",Give it a fan amount so you can see them all.,8,13,62,1
+2,A,,And dad handed them out so I get to go first.,I doubt so I get to give.,4,11,36,
+1,C,1,I made it taller.,1st I made it taller.,4,4,100,1
+2,A,1,Whoa.,Whoa.,1,1,100,1
+3,B,1,So we want to find ones the numbers that are the same or numbers that go in in order in a sequence.,"So we want to find one's numbers that are the same, or numbers that go in in order in a sequence.",22,22,100,1
+1,C,,That are the same.,Do that.,1,4,25,
+3,B,1,"Good, good thought No, not yet. You have to have three or more, so","Good, good thought. No, not yet. You have to have three or more so.",14,14,100,1
+2,A,1,it's not quite like go fish,It's not quite like a fish.,5,6,83,1
+3,B,1,"So it's a start. I mean, you did great. You noticed it, so that was great.","So it's a start. I mean, you did great. You noticed it, so that was great.",16,16,100,1
+2,A,,"Your turn, Eliza","Your sister, probably.",1,3,33,
+1,C,1,"Oh, OK. Pick card and discard.",The card and discard? Mm-hmm.,3,6,50,1
+2,A,1,Mm Hmm. You always got a pick. You always got a discard. Don't let me see your cards. I think all the glitter came out of her hair when I brushed it. It looks pretty good.,You always gotta pick. You always got a discard. Don't let me see your cards. I think all the glitter came out of her hair when I brushed it. It looks pretty good.,34,36,94,1
+3,B,1,Yeah,Yeah.,1,1,100,1
+2,A,1,Sorry about that.,Sorry about that.,3,3,100,1
+3,B,1,"Oh, no, Like, I wasn't worried at, like, once the glue was gone, I was like, eh, brush out","Oh no, like I wasn't worried at like once the glue was gone, I was like.",16,19,84,1
+2,A,1,"Did the glue, wash out ok?",Did the glue wash out OK? I mean.,6,6,100,1
+3,B,1,"I I mean, I think like.",I think like.,5,6,83,1
+2,A,1,"Oh, oh, that's a creepy turtle.","Oh oh, that's a creepy turtle. Looks like that Smile movie.",6,6,100,1
+3,B,1,Yeah. Rafael.,Yeah.,1,2,50,1
+2,A,1,Looks like that Smile movie.,"Oh oh, that's a creepy turtle. Looks like that Smile movie.",5,5,100,1
+1,C,1,That sounds scary.,That sounds scary it.,3,3,100,1
+2,A,1,"It looks scary. You know, it's your turn.","Looks scary, you know. It's your time. Oh, Daddy.",6,8,75,1
+1,C,1,"Oh, Daddy will watch it.",Will watch it I.,3,5,60,1
+3,B,1,Already have Yep. Gonna draw,"Don't have? Yep, I'm gonna draw.",4,5,80,1
+2,A,1,Your mom and dad do creepy movies.,Did mom and dad do creepy movies?,6,7,86,1
+1,C,,"You know, I don't really [unintelligible] movies at all.","At all. That's my girl, I think.",3,9,33,
+2,A,,That's my girl. I think your sister probably [unintelligible],"Your sister, probably.",3,9,33,
+3,B,1,Get rid of that one So put that on top of the K But we got to make it so we can still see them all So you lay it like that See how Mama did?,"Rid of that one. So put that on top of the K But we got to make it so we can see them all. So you lay it like that. See, I'm on the dead. Yeah. So you don't make a stack of them. Oh, see. Look, Mama. See 910.",32,36,89,1
+1,C,1,Yeah,"Yeah, Motion, they don't.",1,1,100,1
+3,B,1,"so you'll make a stack of them. Oh, see, look, Mama? 8, 9, 10","Rid of that one. So put that on top of the K But we got to make it so we can see them all. So you lay it like that. See, I'm on the dead. Yeah. So you don't make a stack of them. Oh, see. Look, Mama. See 910.",10,14,71,1
+2,A,1,But they ought to be the same suit. So these are all spades.,But they ought to be the same suit. So these are all spades.,13,13,100,1
+3,B,1,Yeah. They all have the same shape.,"Yeah, they all have the same.",6,7,86,1
+1,C,1,"And then we're allowed to lay down on people, right?",Shape and then we're allowed to lay down on people.,9,10,90,1
+2,A,1,"Yeah. You don't have to. It's not like rummy, Kay You don't have to lay down 1st. It's you're trying to turn.","Right. Yeah, you don't have to. It's not like Remy K, you don't have to lay down 1st. It's your.",17,22,77,1
+3,B,1,It's [unintelligible] turn. Let's think about,Turn. Let's think about it. Turn on.,4,6,67,1
+2,A,1,Turn your body that way just a little bit so we don't see your cards,"Your body that way just a little bit, so don't see your car.",12,15,80,1
+3,B,1,it's coming over here.,"Over here, so we're more like a.",2,4,50,1
+2,A,1,triangle,Triangle.,1,1,100,1
+3,B,1,"equilateral triangle, not isosceles.","Equilateral triangle, not isosceles.",4,4,100,1
+1,C,1,Don't be a we have to be like a right angle. No. Are all triangles acute?,Don't be a we have to be like a right angle. No are all triangles are cute?,15,16,94,1
+2,A,1,No. Well.,No. Well.,2,2,100,1
+1,C,,"yeah, most one","Yeah, Motion, they don't.",1,3,33,
+3,B,1,they don't have to have acute angles.,Have to have acute angles.,5,7,71,1
+2,A,1,They have to have at least an acute angle.,They have to have at least an acute angle.,9,9,100,1
+1,C,1,"Yeah, they have to have at least one acute angle.","Yeah, they should have at least one acute angle. OK, my turn.",9,10,90,1
+2,A,1,Yeah.,"Yeah, gotcha.",1,1,100,1
+1,C,1,"OK, my turn?","Yeah, they should have at least one acute angle. OK, my turn.",3,3,100,1
+2,A,1,"Yes I was telling mom about the calendar. Said the fabric was a little weird. Anyways, like..",Yes. Just tell mom about the calendar. Said the fabric is a little weird anyways.,12,17,71,1
+3,B,,"oh, last year's.",Like last year.,1,3,33,
+2,A,1,Yeah. I think I have enough experience now that I'll make it. I could do it better.,"Yeah, I think I have enough experience now that I'll make it. I could do it better.",17,17,100,1
+3,B,,Yeah. But I'd rather not do that,"Yeah, but.",2,7,29,
+2,A,1,Are these new cards?,"Now, are these new cards huh? For these new.",4,4,100,1
+3,B,,Huh?,,0,1,0,
+2,A,1,Are these new?,"Now, are these new cards huh? For these new.",3,3,100,1
+3,B,,"Stacey, Donnie from? Yeah.",Yeah.,1,4,25,
+2,A,1,Gotcha.,"Yeah, gotcha.",1,1,100,1
+3,B,1,"OK, good. Get a new one off the off the top, Gwenny Don't anyone see it but us",OK get a get a new one off the off the top Winnie till anyone see it but us.,15,18,83,1
+2,A,1,"That's right, Eliza Grace Do you want to try sip of my tea, see if you like it? OK.","That's right, a lot of grace. Do I try sucking my teeth? See if you like it OK.",14,19,74,1
+1,C,,What kind of tea?,What time?,1,4,25,
+2,A,1,Its called sleepy time,Do you called sleepy time? I don't think no. Is it the tea bag? I.,3,4,75,1
+1,C,1,I don't think No.,Enough. I don't.,2,4,50,1
+2,A,1,This is the tea bag.,Do you called sleepy time? I don't think no. Is it the tea bag? I.,4,5,80,1
+1,C,1,"I don't like, I don't like tea. Like it",Don't like tea? Like it?,7,9,78,1
+2,A,1,I don't like daddy's tea either.,I don't like daddy see either.,4,6,67,1
+1,C,1,"Oh, I I mean, I just don't like tea","Well, I mean, I just don't like.",7,9,78,1
+2,A,1,"Do you wanna smell it and see, it's got different things in it.","Do I smell it to see it's got different things in it? No, no. OK, Oh, what is that, a turtle's?",10,13,77,1
+1,C,1,No.,Don't be a we have to be like a right angle. No are all triangles are cute?,1,1,100,1
+2,A,1,"No, ok. Oh, What is that? A turtles","Do I smell it to see it's got different things in it? No, no. OK, Oh, what is that, a turtle's?",8,8,100,1
+3,B,1,"A turtle blimp Yeah. They got, like, everything that's like from the old cartoon. I don't know, If I was in the cartoon, it might just been a toy.","Turtle Blimp. Yeah, They got like everything that's like from the old cartoon. I don't even know if it was in the cartoon. It might have been a toy.",28,29,97,1
+
+Final Results
+% captured lines: 84%
+% words captured: 78%
+% speakers correctly identified: 84%
+
+Speaker Mapping:
+1 -> C
+2 -> A
+3 -> B
