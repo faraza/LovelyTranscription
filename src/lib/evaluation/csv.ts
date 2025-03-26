@@ -1,6 +1,5 @@
 import { Transcript } from "assemblyai";
 import { parse } from 'csv-parse/sync';
-import { stringify } from 'csv-stringify/sync';
 import { promises as fs } from 'fs';
 import path from "path";
 
