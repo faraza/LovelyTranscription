@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Play, Pause, User, Clock, MessageSquare } from 'lucide-react';
+import { Play, Pause, User, Clock, MessageSquare, RotateCcw } from 'lucide-react';
 import { formatTime } from '@/lib/utils';
 import { Transcript } from 'assemblyai';
 import { uploadStore } from '@/lib/uploadStore';
+import { useRouter } from 'next/navigation';
 
 interface Segment {
   start: number;
@@ -30,6 +31,7 @@ function parseTranscript(transcript: Transcript): Segment[] {
 }
 
 export default function TranscriptPage() {
+  const router = useRouter();
   const [transcript, setTranscript] = useState<Transcript | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const segments = useMemo(() => transcript ? parseTranscript(transcript) : [], [transcript]);
@@ -150,6 +152,19 @@ export default function TranscriptPage() {
     }
   };
 
+  const handleStartOver = () => {
+    // Clear the transcript from localStorage
+    localStorage.removeItem('currentTranscript');
+    // Clear the audio file from upload store
+    uploadStore.clear();
+    // Revoke the audio URL if it exists
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+    }
+    // Redirect to home page
+    router.push('/');
+  };
+
   if (!transcript) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-b from-background to-muted">
@@ -169,7 +184,17 @@ export default function TranscriptPage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 pb-16">
       <div className="container mx-auto py-8 px-4">
         <header className="mb-10 text-center">
-          <h1 className="text-4xl font-bold mb-2">Transcript Review</h1>
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-4xl font-bold">Transcript Review</h1>
+            <Button
+              variant="outline"
+              onClick={handleStartOver}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Start Over
+            </Button>
+          </div>
           <p className="text-muted-foreground">Review and edit your audio transcript</p>
         </header>
 
