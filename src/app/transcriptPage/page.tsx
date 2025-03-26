@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Transcript } from 'assemblyai';
+import { uploadStore } from '@/lib/uploadStore';
 
 interface Segment {
   start: number;
@@ -25,6 +26,7 @@ function parseTranscript(transcript: Transcript): Segment[] {
 
 export default function TranscriptPage() {
   const [transcript, setTranscript] = useState<Transcript | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const segments = useMemo(() => transcript ? parseTranscript(transcript) : [], [transcript]);
   const [speakerNames, setSpeakerNames] = useState<Record<string, string>>({});
 
@@ -44,8 +46,31 @@ useEffect(() => {
   useEffect(() => {
     const savedTranscript = localStorage.getItem('currentTranscript');
     if (savedTranscript) {
-      setTranscript(JSON.parse(savedTranscript));
+      const parsedTranscript = JSON.parse(savedTranscript);
+      
+      // Get the file from our upload store
+      const audioFile = uploadStore.get();
+      if (audioFile) {
+        // Create a new object URL for the audio file
+        const url = URL.createObjectURL(audioFile);
+        setAudioUrl(url);
+        setTranscript({
+          ...parsedTranscript,
+          audio_url: url
+        });
+      } else {
+        setTranscript(parsedTranscript);
+      }
     }
+
+    // Cleanup function
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        setAudioUrl(null);
+      }
+      uploadStore.clear();
+    };
   }, []);
 
   const handleNameChange = (id: string, name: string) => {
@@ -83,7 +108,7 @@ useEffect(() => {
       {/* Audio Section */}
       <section>
         <h1 className="text-2xl font-bold mb-4">Transcript</h1>
-        <audio ref={audioRef} controls src={transcript.audio_url} className="w-full" />
+        <audio ref={audioRef} controls src={audioUrl || ''} className="w-full" />
       </section>
 
       {/* Speaker Names Section */}

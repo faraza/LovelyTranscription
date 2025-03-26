@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { runTranscription } from '@/lib/transcription';
+import { uploadStore } from '@/lib/uploadStore';
 
 export default function UploadPage() {
   const router = useRouter();
@@ -31,10 +32,13 @@ export default function UploadPage() {
     setLoading(true);
     
     try {
+      // Store the file in our upload store
+      uploadStore.set(uploadedFile);
+      
       // Run transcription
       const transcript = await runTranscription(uploadedFile);
       
-      // Store the transcript in localStorage for the transcript page to access
+      // Store just the transcript data in localStorage
       localStorage.setItem('currentTranscript', JSON.stringify(transcript));
       
       // Navigate to transcript page
