@@ -1,22 +1,25 @@
 import { AssemblyAI, Transcript } from 'assemblyai';
 import dotenv from 'dotenv';
+// import fs from 'fs';
+// import path from 'path';
 
 dotenv.config();
 
-export async function runTranscription(filepath: string): Promise<Transcript> {
-    const apiKey = process.env.ASSEMBLYAI_API_KEY
+export async function runTranscription(file: File): Promise<Transcript> {
+    const apiKey = process.env.NEXT_PUBLIC_ASSEMBLYAI_API_KEY;
     if (!apiKey) {
-        throw new Error('ASSEMBLYAI_API_KEY is not set');
+        throw new Error('NEXT_PUBLIC_ASSEMBLYAI_API_KEY is not set');
     }
 
     const client = new AssemblyAI({
         apiKey: apiKey,
     });
 
-    const FILE_URL = filepath;    
+    // Upload the file to AssemblyAI
+    const uploadResponse = await client.files.upload(file);
     
     const data = {
-        audio: FILE_URL,
+        audio: uploadResponse,
         speaker_labels: true,
     }
 
@@ -27,16 +30,15 @@ export async function runTranscription(filepath: string): Promise<Transcript> {
     }
 
     return transcript;
-} 
+}
 
 export async function saveTranscript(transcript: Transcript, filepath: string) {
-    const fs = require('fs');
-    const path = require('path');
+    
 
-    // Create directory if it doesn't exist
-    fs.mkdirSync(filepath, { recursive: true });
+    // // Create directory if it doesn't exist
+    // fs.mkdirSync(filepath, { recursive: true });
 
-    const transcriptPath = path.join(filepath, path.basename(filepath) + '.json');
-    console.log("Transcript saved to: ", transcriptPath);
-    fs.writeFileSync(transcriptPath, JSON.stringify(transcript, null, 2));
+    // const transcriptPath = path.join(filepath, path.basename(filepath) + '.json');
+    // console.log("Transcript saved to: ", transcriptPath);
+    // fs.writeFileSync(transcriptPath, JSON.stringify(transcript, null, 2));
 }

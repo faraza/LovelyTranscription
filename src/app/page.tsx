@@ -1,128 +1,88 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
-import { Input } from '@/components/ui/input';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { runTranscription } from '@/lib/transcription';
 
-const rawTranscript = `
-[0.16 - 0.62],A,What Daddy says.
-[0.64 - 4.10],B,Okay let's. I'm going to fan them out so we can see them all.
-[6.72 - 7.99],A,So I get to go first.
-[8.10 - 9.27],C,I made it taller.
-[9.42 - 10.12],A,Whoa.
-[10.28 - 28.03],B,So we want to find ones. Numbers that are the same or numbers that go in a. In order in a sequence that are insane. Good. Good thoughts. No not yet. You have to have three or more.
-[29.85 - 31.67],A,So it's not quite like your finish.
-[31.70 - 36.03],B,So it's a start. I mean you did great. You noticed it so that was great.
-[36.12 - 37.71],A,Your turn Eliza. Oh okay.
-[37.84 - 39.20],C,Pick a card and discard.
-[39.35 - 42.87],A,You always got to pick. You always got a discard. Don't let me see your cards.
-[43.37 - 45.19],C,And I got to grab.
-[48.41 - 54.00],A,I think all the glitter came out of her hair when I brushed it. It looks pretty good. Yeah sorry about that.
-[54.07 - 58.73],B,Oh no like I wasn't worried it. Once the glue was gone I was like oh just brush out.
-[58.76 - 59.96],A,Did the glue wash out okay?
-`;
+export default function UploadPage() {
+  const router = useRouter();
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
 
-interface Segment {
-  start: number;
-  end: number;
-  speaker: string;
-  text: string;
-}
-
-function parseTranscript(raw: string): Segment[] {
-  return raw
-    .trim()
-    .split('\n')
-    .map((line) => {
-      const match = line.match(/\[(.*?) - (.*?)\],(.*?),(.*)/);
-      if (!match) return null;
-      return {
-        start: parseFloat(match[1]),
-        end: parseFloat(match[2]),
-        speaker: match[3],
-        text: match[4].trim(),
-      };
-    })
-    .filter((seg): seg is Segment => seg !== null);
-}
-
-export default function TranscriptPage() {
-  const segments = useMemo(() => parseTranscript(rawTranscript), []);
-  const uniqueSpeakers = Array.from(new Set(segments.map((s) => s.speaker)));
-  const [speakerNames, setSpeakerNames] = useState(
-    Object.fromEntries(uniqueSpeakers.map((s) => [s, `Speaker ${s}`]))
-  );
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  const handleNameChange = (id: string, name: string) => {
-    setSpeakerNames((prev) => ({ ...prev, [id]: name }));
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    startProcessing(e.target.files[0]);
   };
 
-  const playSegment = (start: number, end: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
 
-    audio.currentTime = start;
-    audio.play();
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      startProcessing(e.dataTransfer.files[0]);
+    }
+  };
 
-    const stopAt = () => {
-      if (audio.currentTime >= end) {
-        audio.pause();
-        audio.removeEventListener('timeupdate', stopAt);
-      }
-    };
-
-    audio.addEventListener('timeupdate', stopAt);
+  const startProcessing = async (uploadedFile: File) => {
+    setFile(uploadedFile);
+    setLoading(true);
+    
+    try {
+      // Run transcription
+      const transcript = await runTranscription(uploadedFile);
+      
+      // Store the transcript in localStorage for the transcript page to access
+      localStorage.setItem('currentTranscript', JSON.stringify(transcript));
+      
+      // Navigate to transcript page
+      router.push('/transcriptPage');
+    } catch (error) {
+      console.error('Transcription failed:', error);
+      alert('Failed to transcribe the audio file. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="mx-auto max-w-3xl p-6 space-y-10">
-      {/* Audio Section */}
-      <section>
-        <h1 className="text-2xl font-bold mb-4">Transcript Demo</h1>
-        <audio ref={audioRef} controls src="/your-audio-file.mp3" className="w-full" />
-      </section>
+    <div className="mx-auto max-w-xl p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Upload an Audio File</h1>
 
-      {/* Speaker Names Section */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Speakers</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {Object.entries(speakerNames).map(([id, name]) => (
-            <div key={id} className="flex items-center gap-2">
-              <label className="text-sm w-12 font-medium text-gray-700">{id}:</label>
-              <Input
-                value={name}
-                onChange={(e) => handleNameChange(id, e.target.value)}
-                className="flex-1"
-              />
-            </div>
-          ))}
+      <div
+        className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded p-8 text-center cursor-pointer hover:border-gray-400"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        <p className="text-gray-600 mb-3">Drag & Drop your audio file here</p>
+        <p className="text-sm text-gray-500 mb-2">— or —</p>
+        <label className="cursor-pointer text-blue-600 underline">
+          Select a file
+          <input
+            type="file"
+            accept="audio/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </label>
+      </div>
+
+      {file && (
+        <p className="text-gray-700 text-sm">
+          Selected File: <span className="font-medium">{file.name}</span>
+        </p>
+      )}
+
+      {loading && (
+        <div className="mt-4">
+          <p className="text-gray-700">Processing your audio...</p>
+          <div className="relative w-full h-3 bg-gray-200 rounded-full overflow-hidden mt-2">
+            <div className="absolute inset-0 bg-blue-500 animate-pulse" />
+          </div>
         </div>
-      </section>
-
-      {/* Transcript Section */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Transcript</h2>
-        <ul className="space-y-4">
-          {segments.map((seg, idx) => (
-            <li key={idx} className="border p-4 rounded-lg shadow space-y-2">
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>
-                  <span className="font-medium text-gray-700">
-                    {speakerNames[seg.speaker]}
-                  </span>{' '}
-                  ({seg.start.toFixed(2)}s - {seg.end.toFixed(2)}s)
-                </span>
-                <Button size="sm" onClick={() => playSegment(seg.start, seg.end)}>
-                  ▶ Play
-                </Button>
-              </div>
-              <p className="text-gray-800">{seg.text}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      )}
     </div>
   );
 }
