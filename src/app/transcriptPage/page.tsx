@@ -11,6 +11,7 @@ import { formatTime } from '@/lib/utils';
 import { Transcript } from 'assemblyai';
 import { uploadStore } from '@/lib/uploadStore';
 import { useRouter } from 'next/navigation';
+import { Switch } from "@/components/ui/switch";
 
 interface Segment {
   start: number;
@@ -19,9 +20,14 @@ interface Segment {
   text: string;
 }
 
+interface SpeakerInfo {
+  name: string;
+  isChild: boolean;
+}
+
 function parseTranscript(transcript: Transcript): Segment[] {
   if (!transcript.utterances) return [];
-  
+
   return transcript.utterances.map(utterance => ({
     start: Number((utterance.start / 1000).toFixed(2)),
     end: Number((utterance.end / 1000).toFixed(2)),
@@ -30,12 +36,29 @@ function parseTranscript(transcript: Transcript): Segment[] {
   }));
 }
 
+import clsx from "clsx";   // if you don’t have clsx, `npm i clsx`
+
+const toggleClasses = (isChild: boolean) =>
+  clsx(
+    "relative inline-flex h-8 w-16 shrink-0 cursor-pointer rounded-full transition-colors",
+    "border border-border focus:outline-none focus:ring-2 focus:ring-offset-2",
+    isChild
+      ? "bg-rose-600 dark:bg-rose-400 focus:ring-rose-600/70"
+      : "bg-zinc-300 dark:bg-zinc-700 focus:ring-zinc-500/70"
+  );
+
+const thumbClasses = (isChild: boolean) =>
+  clsx(
+    "pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition-all",
+    isChild ? "translate-x-8" : "translate-x-1"
+  );
+
 export default function TranscriptPage() {
   const router = useRouter();
   const [transcript, setTranscript] = useState<Transcript | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const segments = useMemo(() => transcript ? parseTranscript(transcript) : [], [transcript]);
-  const [speakerNames, setSpeakerNames] = useState<Record<string, string>>({});
+  const [speakerNames, setSpeakerNames] = useState<Record<string, SpeakerInfo>>({});
   const [currentSegment, setCurrentSegment] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -45,7 +68,7 @@ export default function TranscriptPage() {
     setSpeakerNames((prev) => {
       const updated = { ...prev };
       for (const s of speakers) {
-        if (!updated[s]) updated[s] = `Speaker ${s}`;
+        if (!updated[s]) updated[s] = { name: `Speaker ${s}`, isChild: false };
       }
       return updated;
     });
@@ -55,7 +78,7 @@ export default function TranscriptPage() {
     const savedTranscript = localStorage.getItem('currentTranscript');
     if (savedTranscript) {
       const parsedTranscript = JSON.parse(savedTranscript);
-      
+
       // Get the file from our upload store
       const audioFile = uploadStore.get();
       if (audioFile) {
@@ -105,7 +128,17 @@ export default function TranscriptPage() {
   }, []);
 
   const handleNameChange = (id: string, name: string) => {
-    setSpeakerNames((prev) => ({ ...prev, [id]: name }));
+    setSpeakerNames((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], name }
+    }));
+  };
+
+  const handleToggleChange = (id: string, isChild: boolean) => {
+    setSpeakerNames((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], isChild }
+    }));
   };
 
   const getSpeakerColor = (speakerId: string) => {
@@ -223,9 +256,11 @@ export default function TranscriptPage() {
                 </span>
                 Speakers
               </h2>
+
               <div className="space-y-4">
-                {Object.entries(speakerNames).map(([speakerId, speakerName]) => (
+                {Object.entries(speakerNames).map(([speakerId, speakerInfo]) => (
                   <div key={speakerId} className="space-y-2">
+                    {/* Avatar + ID badge */}
                     <div className="flex items-center gap-2">
                       <Avatar className={`h-8 w-8 ${getAvatarColor(speakerId)}`}>
                         <AvatarFallback>{speakerId}</AvatarFallback>
@@ -234,12 +269,51 @@ export default function TranscriptPage() {
                         ID: {speakerId}
                       </Badge>
                     </div>
+
+                    {/* Name input */}
                     <Input
-                      value={speakerName}
+                      value={speakerInfo.name}
                       onChange={(e) => handleNameChange(speakerId, e.target.value)}
-                      className="w-full"
+                      className="w-full mb-2"
                       placeholder="Speaker name"
                     />
+
+                    {/* ← Replace your old toggle here with this */}
+                    <div className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                      <label
+                        htmlFor={`speaker-${speakerId}-toggle`}
+                        className="text-sm font-medium"
+                      >
+                        {speakerInfo.isChild ? 'Child Speaker' : 'Adult Speaker'}
+                      </label>
+                      <Switch
+                        id={`speaker-${speakerId}-toggle`}
+                        checked={speakerInfo.isChild}
+                        onCheckedChange={(checked) =>
+                          handleToggleChange(speakerId, checked)
+                        }
+                        className="
+                relative inline-flex h-6 w-12 shrink-0 cursor-pointer
+                rounded-full border-2 border-transparent
+                transition-colors duration-200 ease-in-out
+                bg-gray-300
+                data-[state=checked]:bg-primary
+                focus:outline-none focus:ring-2 focus:ring-primary
+                focus:ring-offset-2
+              "
+                      >
+                        <span className="sr-only">Speaker type</span>
+                        <span
+                          aria-hidden="true"
+                          className="
+                  pointer-events-none inline-block h-5 w-5 transform
+                  rounded-full bg-white shadow ring-0
+                  transition duration-200 ease-in-out
+                  data-[state=checked]:translate-x-6
+                "
+                        />
+                      </Switch>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -274,7 +348,7 @@ export default function TranscriptPage() {
                         </Avatar>
                         <div>
                           <span className="font-medium">
-                            {speakerNames[segment.speaker] || `Speaker ${segment.speaker}`}
+                            {speakerNames[segment.speaker]?.name || `Speaker ${segment.speaker}`}
                           </span>
                           <div className="flex items-center text-xs text-muted-foreground mt-1">
                             <Clock className="h-3 w-3 mr-1" />
