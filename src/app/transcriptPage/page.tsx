@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Play, Pause, User, Clock, MessageSquare, RotateCcw } from 'lucide-react';
+import { Play, Pause, User, Clock, MessageSquare, RotateCcw, Download } from 'lucide-react';
 import { formatTime } from '@/lib/utils';
 import { Transcript } from 'assemblyai';
 import { uploadStore } from '@/lib/uploadStore';
@@ -36,7 +36,7 @@ function parseTranscript(transcript: Transcript): Segment[] {
   }));
 }
 
-import clsx from "clsx";   // if you don’t have clsx, `npm i clsx`
+import clsx from "clsx";   // if you don't have clsx, `npm i clsx`
 
 const toggleClasses = (isChild: boolean) =>
   clsx(
@@ -198,6 +198,32 @@ export default function TranscriptPage() {
     router.push('/');
   };
 
+  const handleDownloadCSV = () => {
+    if (!transcript) return;
+
+    // Create CSV content
+    const csvContent = [
+      ['Speaker', 'Adult/Child', 'Timing', 'Utterance'], // Header row
+      ...segments.map(segment => [
+        speakerNames[segment.speaker]?.name || `Speaker ${segment.speaker}`,
+        speakerNames[segment.speaker]?.isChild ? 'Child' : 'Adult',
+        `${formatTime(segment.start)} - ${formatTime(segment.end)}`,
+        segment.text
+      ])
+    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'transcript.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (!transcript) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-b from-background to-muted">
@@ -219,14 +245,24 @@ export default function TranscriptPage() {
         <header className="mb-10 text-center">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-4xl font-bold">Transcript Review</h1>
-            <Button
-              variant="outline"
-              onClick={handleStartOver}
-              className="flex items-center gap-2"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Start Over
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleDownloadCSV}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download CSV
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleStartOver}
+                className="flex items-center gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Start Over
+              </Button>
+            </div>
           </div>
           <p className="text-muted-foreground">Review and edit your audio transcript</p>
         </header>
