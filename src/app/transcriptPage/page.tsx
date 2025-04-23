@@ -18,6 +18,7 @@ interface Segment {
   end: number;
   speaker: string;
   text: string;
+  confidence: number;
 }
 
 interface SpeakerInfo {
@@ -33,6 +34,7 @@ function parseTranscript(transcript: Transcript): Segment[] {
     end: Number((utterance.end / 1000).toFixed(2)),
     speaker: utterance.speaker || 'Unknown',
     text: utterance.text || '',
+    confidence: utterance.confidence || 0,
   }));
 }
 
@@ -203,12 +205,13 @@ export default function TranscriptPage() {
 
     // Create CSV content
     const csvContent = [
-      ['Speaker', 'Adult/Child', 'Timing', 'Utterance'], // Header row
+      ['Speaker', 'Adult/Child', 'Timing', 'Utterance', 'Confidence'], // Header row
       ...segments.map(segment => [
         speakerNames[segment.speaker]?.name || `Speaker ${segment.speaker}`,
         speakerNames[segment.speaker]?.isChild ? 'Child' : 'Adult',
         `${formatTime(segment.start)} - ${formatTime(segment.end)}`,
-        segment.text
+        segment.text,
+        (segment.confidence * 100).toFixed(1) + '%'
       ])
     ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
@@ -390,6 +393,10 @@ export default function TranscriptPage() {
                             <Clock className="h-3 w-3 mr-1" />
                             <span>
                               {formatTime(segment.start)} - {formatTime(segment.end)}
+                            </span>
+                            <span className="mx-2">•</span>
+                            <span className="text-xs">
+                              Confidence: {(segment.confidence * 100).toFixed(1)}%
                             </span>
                           </div>
                         </div>

@@ -66,6 +66,8 @@ export default function UploadPage() {
       
       // Run transcription
       const transcript = await runTranscription(file);
+
+      console.log(transcript);
       
       // Store just the transcript data in localStorage
       localStorage.setItem('currentTranscript', JSON.stringify(transcript));
