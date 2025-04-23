@@ -38,22 +38,6 @@ function parseTranscript(transcript: Transcript): Segment[] {
   }));
 }
 
-import clsx from "clsx";   // if you don't have clsx, `npm i clsx`
-
-const toggleClasses = (isChild: boolean) =>
-  clsx(
-    "relative inline-flex h-8 w-16 shrink-0 cursor-pointer rounded-full transition-colors",
-    "border border-border focus:outline-none focus:ring-2 focus:ring-offset-2",
-    isChild
-      ? "bg-rose-600 dark:bg-rose-400 focus:ring-rose-600/70"
-      : "bg-zinc-300 dark:bg-zinc-700 focus:ring-zinc-500/70"
-  );
-
-const thumbClasses = (isChild: boolean) =>
-  clsx(
-    "pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition-all",
-    isChild ? "translate-x-8" : "translate-x-1"
-  );
 
 export default function TranscriptPage() {
   const router = useRouter();
